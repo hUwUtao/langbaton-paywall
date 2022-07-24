@@ -1,0 +1,29 @@
+{
+  "name": "langbaton",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "concurrently \"npm:*:dev\" -n _ -c cyan,green",
+    "devinit": "pnpm frontend:init && pnpm backend:init",
+    "frontend:init": "cd frontend && pnpm install",
+    "frontend:dev": "cd frontend && pnpm dev",
+    "frontend:prodinit": "cd frontend && pnpm install -P",
+    "frontend:build": "cd frontend && pnpm build",
+    "backend:init": "cd backend && bun install",
+    "backend:dev": "cd backend && bun start",
+    "backend:prodinit": "cd backend && bun install -p",
+    "backend:build": "cd backend && bun build",
+    "format": "prettier --write '**/*.{js,jsx,ts,tsx,css,json}'",
+    "lint": "eslint '**/*.{js,jsx,ts,tsx}'"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "concurrently": "^7.3.0",
+    "eslint": "^8.20.0",
+    "eslint-config-prettier": "^8.5.0",
+    "prettier": "^2.7.1"
+  }
+}
