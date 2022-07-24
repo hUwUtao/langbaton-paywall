@@ -1,11 +1,18 @@
 {
   "name": "backend",
   "version": "0.0.3",
-  "module": "src/index.js",
+  "main": "src/index.ts",
+  "module": "src/index.ts",
+  "sourceType": "module",
   "scripts": {
-    "start": "bun src/index.js"
+    "start": "bun src/index.ts",
+    "dev": "nodemon --ext js,ts,json --exec \"bun\" run start"
+  },
+  "dependencies": {
+    "@types/node": "^18.0.6",
+    "bun-types": "^0.1.4"
   },
   "devDependencies": {
-    "bun-types": "latest"
+    "nodemon": "^2.0.19"
   }
 }
