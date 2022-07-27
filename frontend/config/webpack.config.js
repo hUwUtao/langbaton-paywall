@@ -380,51 +380,51 @@ module.exports = function (webpackEnv) {
               test: /\.svg$/i,
               type: 'asset',
               use: [
-                {
-                  loader: require.resolve('file-loader'),
-                  options: {
-                    name: 'static/_[contenthash:8].[ext]',
-                  },
-                },
-                {
-                  loader: 'svgo-loader',
-                  options: {
-                    configFile: false,
-                  },
-                },
+                // {
+                //   loader: require.resolve('file-loader'),
+                //   options: {
+                //     name: 'static/_[contenthash:8].[ext]',
+                //   },
+                // },
+                // {
+                //   loader: 'svgo-loader',
+                //   options: {
+                //     configFile: false,
+                //   },
+                // },
               ],
             },
-            {
-              test: /\.svg$/,
-              use: [
-                {
-                  loader: require.resolve('@svgr/webpack'),
-                  options: {
-                    prettier: false,
-                    svgo: true,
-                    svgoConfig: {
-                      plugins: [
-                        { mergePaths: false },
-                        { removeViewbox: false },
-                        { removeAttrs: true },
-                      ],
-                    },
-                    titleProp: true,
-                    ref: true,
-                    memo: true,
-                  },
-                },
-                {
-                  loader: require.resolve('file-loader'),
-                  options: {
-                    name: 'static/_[contenthash:8].[ext]',
-                  },
-                },
-              ],
-              issuer: {
-                and: [/\.(ts|tsx|js|jsx|md|mdx)$/],
-              },
-            },
+            // {
+            //   test: /\.svg$/,
+            //   use: [
+            //     {
+            //       loader: require.resolve('@svgr/webpack'),
+            //       options: {
+            //         prettier: false,
+            //         svgo: true,
+            //         svgoConfig: {
+            //           plugins: [
+            //             { mergePaths: false },
+            //             { removeViewbox: false },
+            //             { removeAttrs: true },
+            //           ],
+            //         },
+            //         titleProp: true,
+            //         ref: true,
+            //         memo: true,
+            //       },
+            //     },
+            //     {
+            //       loader: require.resolve('file-loader'),
+            //       options: {
+            //         name: 'static/_[contenthash:8].[ext]',
+            //       },
+            //     },
+            //   ],
+            //   issuer: {
+            //     and: [/\.(ts|tsx|js|jsx|md|mdx)$/],
+            //   },
+            // },
             // Process application JS with Babel.
             // The preset includes JSX, Flow, TypeScript, and some ESnext features.
             {

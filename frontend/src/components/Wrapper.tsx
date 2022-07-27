@@ -27,11 +27,11 @@ function Page({ children }: WrapperProps) {
 
 export default function Wrapper({ children }: WrapperProps) {
   return (
-    <div className="w-full h-full flex justify-center items-center bg-deep-purple-600">
-      <Wallpaper />
-      <Theme>
+    <Theme>
+      <div className="w-full h-full flex justify-center items-center bg-deep-purple-600">
+        <Wallpaper />
         <Page>{children}</Page>
-      </Theme>
-    </div>
+      </div>
+    </Theme>
   )
 }

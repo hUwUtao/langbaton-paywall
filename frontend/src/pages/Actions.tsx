@@ -1,6 +1,7 @@
 import {
   // useState,
   lazy,
+  memo,
 } from 'react'
 // import stated from '../utils/stated';
 
@@ -24,8 +25,8 @@ import {
   // Option,
 } from '@material-tailwind/react'
 
-const Card = lazy(() => import('./ActionPages/Card'))
-const Momo = lazy(() => import('./ActionPages/Momo'))
+const Card = memo(lazy(() => import('./ActionPages/Card')))
+const Momo = memo(lazy(() => import('./ActionPages/Momo')))
 
 export default function Actions() {
   // const [serial, setSerial] = useState('');
@@ -44,11 +45,11 @@ export default function Actions() {
               <Favicon src={sim_favicon} alt="" /> Card
             </Tab>
             <Tab value="momo">
-              <Favicon src={momo_favicon} alt="" /> Momo
+              <Favicon src={momo_favicon} alt="" /> Bank/Momo
             </Tab>
           </TabsHeader>
         </CardHeader>
-        <TabsBody className="p-2">
+        <TabsBody className="p-2 overflow-visible">
           <TabPanel value="card">
             <Card />
           </TabPanel>
