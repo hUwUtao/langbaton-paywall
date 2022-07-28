@@ -24,6 +24,11 @@ import {
   // Select,
   // Option,
 } from '@material-tailwind/react'
+import { type } from 'os'
+
+interface ActionPageProps {
+  react: any
+}
 
 const Card = memo(lazy(() => import('./ActionPages/Card')))
 const Momo = memo(lazy(() => import('./ActionPages/Momo')))
@@ -61,3 +66,5 @@ export default function Actions() {
     </>
   )
 }
+
+export type { ActionPageProps }

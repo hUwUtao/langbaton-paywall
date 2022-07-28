@@ -4,14 +4,28 @@ const fs = require('fs')
 const path = require('path')
 const webpack = require('webpack')
 const resolve = require('resolve')
+
+// HTML-related
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const CaseSensitivePathsPlugin = require('case-sensitive-paths-webpack-plugin')
 const InlineChunkHtmlPlugin = require('react-dev-utils/InlineChunkHtmlPlugin')
+
+// JS and Optimizations
 const TerserPlugin = require('terser-webpack-plugin')
+const JsonMinimizerPlugin = require('json-minimizer-webpack-plugin')
+const CompressionPlugin = require('compression-webpack-plugin')
+const zlib = require('zlib')
+
+// CSS-related
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 const CssoWebpackPlugin = require('csso-webpack-plugin').default
 // const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
-const { WebpackManifestPlugin } = require('webpack-manifest-plugin')
+
+// Bundle analytics
+// const BundleAnalyzerPlugin =
+//   require('webpack-bundle-analyzer').BundleAnalyzerPlugin
+
+// const { WebpackManifestPlugin } = require('webpack-manifest-plugin')
 const InterpolateHtmlPlugin = require('react-dev-utils/InterpolateHtmlPlugin')
 const WorkboxWebpackPlugin = require('workbox-webpack-plugin')
 const ModuleScopePlugin = require('react-dev-utils/ModuleScopePlugin')
@@ -28,6 +42,10 @@ const ForkTsCheckerWebpackPlugin =
 const ReactRefreshWebpackPlugin = require('@pmmmwh/react-refresh-webpack-plugin')
 
 const createEnvironmentHash = require('./webpack/persistentCache/createEnvironmentHash')
+
+// Random sussy thing
+const config = require('./config')
+const progress = require('./webpack/progress')
 
 // Source maps are resource heavy and can cause out of memory issue for large source files.
 const shouldUseSourceMap = process.env.GENERATE_SOURCEMAP !== 'false'
@@ -85,6 +103,8 @@ const hasJsxRuntime = (() => {
     return false
   }
 })()
+
+const outName = 'static/[contenthash:8]'
 
 // This is the production and development configuration.
 // It is focused on developer experience, fast rebuilds, and a minimal bundle.
@@ -214,9 +234,9 @@ module.exports = function (webpackEnv) {
         : isEnvDevelopment && 'static/js/bundle.js',
       // There are also additional JS chunk files if you use code splitting.
       chunkFilename: isEnvProduction
-        ? 'static/_[contenthash:8].js'
+        ? `${outName}.js`
         : isEnvDevelopment && 'static/js/[name].chunk.js',
-      assetModuleFilename: 'static/_[contenthash:8][ext]',
+      assetModuleFilename: `${outName}[ext]`,
       // webpack uses `publicPath` to determine where the app is being served from.
       // It requires a trailing slash, or the file assets will get an incorrect path.
       // We inferred the "public path" (such as / or /my-project) from homepage.
@@ -273,6 +293,9 @@ module.exports = function (webpackEnv) {
               // Pending further investigation:
               // https://github.com/terser-js/terser/issues/120
               inline: 2,
+
+              // booleans_as_integers: true,
+              module: true,
             },
             mangle: {
               safari10: true,
@@ -291,7 +314,29 @@ module.exports = function (webpackEnv) {
         }),
         // This is only used in production mode
         // new CssMinimizerPlugin(),
+
+        new JsonMinimizerPlugin(),
       ],
+      // vendoring
+      // runtimeChunk: {
+      //   name: entrypoint => `runtime_${entrypoint.name}`,
+      // },
+      // splitChunks: {
+      //   chunks: 'async',
+      //   minSize: 20000,
+      //   minRemainingSize: 0,
+      //   minChunks: 1,
+      //   maxAsyncRequests: 30,
+      //   maxInitialRequests: 30,
+      //   enforceSizeThreshold: 50000,
+      //   cacheGroups: {
+      //     vendor: {
+      //       test: /[\\/]node_modules[\\/](react|react-dom)[\\/]/,
+      //       name: 'vendor',
+      //       chunks: 'all',
+      //     },
+      //   },
+      // },
     },
     resolve: {
       // This allows you to set a fallback for where webpack should look for modules.
@@ -376,23 +421,41 @@ module.exports = function (webpackEnv) {
                 },
               },
             },
+            // {
+            //   test: /\.json$/i,
+            //   type: 'asset/resource',
+            //   use: 'file-loader',
+            //   options: {
+            //     name: `${outName}.json`,
+            //   },
+            // },
+            {
+              test: /\.(woff(2)?|ttf|eot)(\?v=\d+\.\d+\.\d+)?$/,
+              type: 'asset/resource',
+            },
             {
               test: /\.svg$/i,
-              type: 'asset',
-              use: [
-                // {
-                //   loader: require.resolve('file-loader'),
-                //   options: {
-                //     name: 'static/_[contenthash:8].[ext]',
-                //   },
-                // },
-                // {
-                //   loader: 'svgo-loader',
-                //   options: {
-                //     configFile: false,
-                //   },
-                // },
-              ],
+              type: 'asset/resource',
+              use: 'svgo-loader',
+              // type: 'asset',
+              // use: 'file-loader',
+              // options: {
+              //   name: `${outName}.svg`,
+              // },
+              // use: [
+              // {
+              //   loader: require.resolve('file-loader'),
+              //   options: {
+              //     name: 'static/_[contenthash:8].[ext]',
+              //   },
+              // },
+              // {
+              //   loader: 'svgo-loader',
+              //   options: {
+              //     configFile: false,
+              //   },
+              // },
+              // ],
             },
             // {
             //   test: /\.svg$/,
@@ -417,7 +480,7 @@ module.exports = function (webpackEnv) {
             //     {
             //       loader: require.resolve('file-loader'),
             //       options: {
-            //         name: 'static/_[contenthash:8].[ext]',
+            //         name: `${outName}.[ext]`,
             //       },
             //     },
             //   ],
@@ -487,10 +550,7 @@ module.exports = function (webpackEnv) {
             },
             // "postcss" loader applies autoprefixer to our CSS.
             // "css" loader resolves paths in CSS and adds assets as dependencies.
-            // "style" loader turns CSS into JS modules that inject <style> tags.
-            // In production, we use MiniCSSExtractPlugin to extract that CSS
-            // to a file, but in development "style" loader enables hot editing
-            // of CSS.
+            // "style" loader turns CSS into JS modules that insvg file-loader
             // By default we support CSS Modules with the extension .module.css
             {
               test: cssRegex,
@@ -598,16 +658,17 @@ module.exports = function (webpackEnv) {
           isEnvProduction
             ? {
                 minify: {
-                  removeComments: true,
-                  collapseWhitespace: true,
-                  removeRedundantAttributes: true,
-                  useShortDoctype: true,
-                  removeEmptyAttributes: true,
-                  removeStyleLinkTypeAttributes: true,
-                  keepClosingSlash: true,
                   minifyJS: true,
                   minifyCSS: true,
                   minifyURLs: true,
+                  removeComments: true,
+                  useShortDoctype: true,
+                  keepClosingSlash: true,
+                  collapseWhitespace: true,
+                  removeAttributeQuotes: true,
+                  removeEmptyAttributes: true,
+                  removeRedundantAttributes: true,
+                  removeStyleLinkTypeAttributes: true,
                 },
               }
             : undefined
@@ -650,7 +711,7 @@ module.exports = function (webpackEnv) {
           // Options similar to the same options in webpackOptions.output
           // both options are optional
           filename: 'static/[name].[contenthash:8].css',
-          chunkFilename: 'static/_[contenthash:8].chunk.css',
+          chunkFilename: `${outName}.css`,
         }),
       isEnvProduction && new CssoWebpackPlugin(),
       // Generate an asset manifest file with the following content:
@@ -659,24 +720,24 @@ module.exports = function (webpackEnv) {
       //   `index.html`
       // - "entrypoints" key: Array of files which are included in `index.html`,
       //   can be used to reconstruct the HTML if necessary
-      new WebpackManifestPlugin({
-        fileName: 'asset-manifest.json',
-        publicPath: paths.publicUrlOrPath,
-        generate: (seed, files, entrypoints) => {
-          const manifestFiles = files.reduce((manifest, file) => {
-            manifest[file.name] = file.path
-            return manifest
-          }, seed)
-          const entrypointFiles = entrypoints.main.filter(
-            fileName => !fileName.endsWith('.map')
-          )
+      // new WebpackManifestPlugin({
+      //   fileName: 'asset-manifest.json',
+      //   publicPath: paths.publicUrlOrPath,
+      //   generate: (seed, files, entrypoints) => {
+      //     const manifestFiles = files.reduce((manifest, file) => {
+      //       manifest[file.name] = file.path
+      //       return manifest
+      //     }, seed)
+      //     const entrypointFiles = entrypoints.main.filter(
+      //       fileName => !fileName.endsWith('.map')
+      //     )
 
-          return {
-            files: manifestFiles,
-            entrypoints: entrypointFiles,
-          }
-        },
-      }),
+      //     return {
+      //       files: manifestFiles,
+      //       entrypoints: entrypointFiles,
+      //     }
+      //   },
+      // }),
       // Moment.js is an extremely popular library that bundles large locale files
       // by default due to how webpack interprets its code. This is a practical
       // solution that requires the user to opt into importing specific locales.
@@ -772,12 +833,40 @@ module.exports = function (webpackEnv) {
             },
           },
         }),
+
+      config.useBrotli &&
+        new CompressionPlugin({
+          filename: '[path][base].br',
+          algorithm: 'brotliCompress',
+          test: /\.(js|css|html|svg|jpg|png|woff|woff2)$/,
+          compressionOptions: {
+            params: {
+              [zlib.constants.BROTLI_PARAM_QUALITY]: 11,
+            },
+          },
+          threshold: 10240,
+          minRatio: 0.8,
+          deleteOriginalAssets: false,
+        }),
+
+      // new webpack.BannerPlugin({
+      //   banner:
+      //     'Signed by hUwUtao <https://github.com/hUwUtao | https://huwutao.me>',
+      // }),
+
+      // isEnvProduction &&
+      new webpack.ProgressPlugin(progress),
+
+      // new BundleAnalyzerPlugin({
+      //   analyzerMode: 'static',
+      //   openAnalyzer: false,
+      // }),
     ].filter(Boolean),
     // Turn off performance processing because we utilize
     // our own hints via the FileSizeReporter
-    // performance: {
-    //   hints: "warning",
-    // },
-    performance: false,
+    performance: {
+      hints: 'warning',
+    },
+    // performance: false,
   }
 }

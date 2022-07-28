@@ -2,4 +2,5 @@
 
 ```
 backend/.env.development
+backend/publicKey.ts
 ```

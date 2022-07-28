@@ -18,6 +18,15 @@ import {
   Option,
 } from '@material-tailwind/react'
 import coinIcon from '../../assets/coin.twemoji.svg'
+import http, { securePost } from '../../utils/http'
+
+// import Swal from 'sweetalert2'
+import {
+  success,
+  // info
+} from '../../utils/noty'
+
+// import { kvEncrypt, kvDecrypt } from '../../utils/hash'
 
 // import Favicon from '../../components/Favicon'
 
@@ -26,14 +35,21 @@ const boostFormula = (value: number, ratio: number, boost: number) =>
 
 export default function Card() {
   // Post fetch data
-  const [boost, setBoost] = useState<number>(0)
-  const [til, setTil] = useState<Date>(new Date())
+  const [boost, setBoost] = useState<{
+    ratio: number
+    expirable: boolean
+    until: Date
+  }>({
+    ratio: 0,
+    expirable: false,
+    until: new Date(),
+  })
 
   // Form data
   const [cvar, setcvar] = useState<number>(0)
   const [cval, setcval] = useState<number>(cards[0].values[0])
-  const [fcser, setfcser] = useState<boolean>(false)
-  const [fcode, setfcode] = useState<boolean>(false)
+  // const [fcser, setfcser] = useState<boolean>(false)
+  // const [fcode, setfcode] = useState<boolean>(false)
   const [cser, setcser] = useState<string>('')
   const [code, setcode] = useState<string>('')
   const [cptc, setcptc] = useState<string | null>(null)
@@ -44,6 +60,20 @@ export default function Card() {
 
   function onSubmit() {
     const data = collectFormData()
+    // const hashed = kvEncrypt('ctto', JSON.stringify(data)).toString()
+    // console.log(data, hashed, kvDecrypt('ctto', hashed))
+    securePost('/cardResult', JSON.stringify(data))
+      .then(res => {
+        success('Gửi thẻ thành công, vui lòng đợi!')
+      })
+      // .catch(err => {
+      //   Swal.fire({
+      //     title: 'Error',
+      //     text: err.message,
+      //     icon: 'error',
+      //     confirmButtonText: 'OK',
+      //   })
+      // })
   }
 
   function collectFormData() {
@@ -57,13 +87,14 @@ export default function Card() {
   }
 
   useEffect(() => {
-    fetch('/api/boost')
-      .then(res => res.json())
-      .then(res => {
-        setBoost(Number(res.default.ratio))
-        setTil(new Date(res.default.until))
+    http.get('/boost').then(res => {
+      const data = res.data.default
+      setBoost({
+        ratio: data.ratio,
+        expirable: data.expirable,
+        until: new Date(data.until),
       })
-      .catch(e => console.error(e))
+    })
   }, [])
 
   function onCaptcha(value: string | null) {
@@ -72,21 +103,22 @@ export default function Card() {
 
   return (
     <div className="flex flex-col gap-4">
-      {boost > 1 ? (
+      {boost.ratio > 1 ? (
         <Alert>
-          <span className="font-bold">x{boost}</span> giá trị nạp
+          <span className="font-bold">x{boost.ratio}</span> giá trị nạp
           <br />
           <span>
-            đến {til.toLocaleDateString('vi-VN')}{' '}
-            {til.toLocaleTimeString('vi-VN')}
+            đến {boost.until.toLocaleDateString('vi-VN')}{' '}
+            {boost.until.toLocaleTimeString('vi-VN')}
           </span>
         </Alert>
       ) : null}
       <Select
         variant="outlined"
-        label="Type"
+        label="Loại thẻ"
         value={String(cvar)}
         onChange={e => setcvar(Number(e?.toString()))}
+        aria-label="Loại thẻ"
       >
         {cards.map((card, index) => (
           <Option key={index} value={String(index)}>
@@ -99,16 +131,17 @@ export default function Card() {
       </Select>
       <Select
         variant="outlined"
-        label="Amount"
+        label="Mệnh giá"
         value={String(cval)}
         className="z-10"
         onChange={e => setcval(Number(e?.toString()))}
+        aria-label="Mệnh giá"
       >
         {cards[cvar].values.map((value, index) => (
           <Option key={index} value={String(value)}>
             {thousandComma(value)}đ
             <span className="float-right pl-2 flex items-center">
-              {boost > 1 ? (
+              {boost.ratio > 1 ? (
                 <>
                   <span className="line-through opacity-50 pr-1">
                     {boostFormula(value, cards[cvar].ratio, 1)}
@@ -116,7 +149,7 @@ export default function Card() {
                 </>
               ) : null}
               <span className="font-bold">
-                {boostFormula(value, cards[cvar].ratio, boost)}
+                {boostFormula(value, cards[cvar].ratio, boost.ratio)}
               </span>{' '}
               <img src={coinIcon} alt="" className="h-4 items-center pl-1" />
             </span>
@@ -143,7 +176,7 @@ export default function Card() {
         onChange={onCaptcha}
         hl="vi"
       />
-      <Button variant="gradient" fullWidth onSubmit={onSubmit}>
+      <Button variant="gradient" fullWidth onClick={onSubmit}>
         Submit
       </Button>
     </div>

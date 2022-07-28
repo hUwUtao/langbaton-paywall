@@ -1,23 +1,25 @@
 import './env'
 
-import React, { lazy, Suspense } from 'react'
+import { lazy, Suspense, StrictMode } from 'react'
 import ReactDOM from 'react-dom/client'
 
 import SuspenseWrapper from './components/Suspense'
 import Wrapper from './components/Wrapper'
 import './styles/global.css'
 
-const Router = lazy(() => import('./Router'))
+// NOT A BIG DEAL
+import Router from './Router'
+// const Router = lazy(() => import('./Router'))
 
 const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement)
 root.render(
   <>
-    <React.StrictMode>
+    <StrictMode>
       <Suspense fallback={<SuspenseWrapper />}>
         <Wrapper>
           <Router />
         </Wrapper>
       </Suspense>
-    </React.StrictMode>
+    </StrictMode>
   </>
 )
